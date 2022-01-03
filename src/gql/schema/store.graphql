@@ -1,0 +1,40 @@
+type Store {
+    id: ID
+    name: String
+    bookStoreRelations: [BookStoreRelation]
+}
+
+type BookStoreRelation {
+    id: ID
+    bookId: Int
+    storeId: Int
+    book: Book
+    store: Store
+}
+
+type Query {
+    stores: [Store]
+}
+
+input BookStoreRelationWhere {
+    id: ID
+    id__in: [ID]
+    bookId: Int
+    bookId__in: [Int]
+    storeId: Int
+    storeId__in: [Int]
+}
+
+type Mutation {
+    createStroe(input: CreateStoreInput): Store
+    registerBook(input: RegisterBookInput): BookStoreRelation
+}
+
+input CreateStoreInput {
+    name: String!
+}
+
+input RegisterBookInput {
+    storeId: Int!
+    bookId: Int!
+}

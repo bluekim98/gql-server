@@ -1,0 +1,32 @@
+type Writer {
+    id: ID
+    name: String
+    books(input: FindBookInput): [Book]
+}
+
+type Query {
+    writers(input: FindWriterInput): [Writer]
+}
+
+input FindWriterInput {
+    where: FindWriterWhere
+    some: FindWriterSome
+}
+
+input FindWriterWhere {
+    id: ID
+    id__in: [ID]
+    name: String
+}
+
+input FindWriterSome {
+    books: FindBookWhere
+}
+
+type Mutation {
+    createWriter(input: CreateWriterInput): Writer
+}
+
+input CreateWriterInput {
+    name: String!
+}

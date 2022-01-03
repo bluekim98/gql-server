@@ -1,0 +1,36 @@
+type Book {
+    id: ID
+    title: String
+    writerId: Int
+    writer: Writer
+    bookStoreRelations: [BookStoreRelation]
+}
+
+type Query {
+    books: [Book]
+}
+
+input FindBookInput {
+    where: FindBookWhere
+    some: FindBookSome
+}
+
+input FindBookWhere {
+    id: ID
+    id__in: [ID]
+    title: String
+    writerId: Int
+}
+
+input FindBookSome {
+    bookStoreRelations: BookStoreRelationWhere
+}
+
+type Mutation {
+    createBook(input: CreateBookInput): Book
+}
+
+input CreateBookInput {
+    title: String!
+    writerId: Int!
+}
