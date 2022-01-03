@@ -8,17 +8,22 @@ import {
     ResolveField,
     Resolver,
 } from '@nestjs/graphql';
-import { BookDataSource, FindKey } from '@src/book/service/book.datasource';
+import { BookService } from '@src/book/service/book.service';
+import { LoadKey } from '@src/database/service/base.service';
 import { CreateWriterInput, FindWriterInput, Writer } from '@src/graphql';
 import { WriterService } from '../service/writer.service';
 
 @Resolver('Writer')
 export class WriterResolver {
-    constructor(private readonly writerService: WriterService) {}
+    constructor(
+        private readonly writerService: WriterService,
+        private readonly bookService: BookService,
+    ) {}
 
     @Query('writers')
     async writers(@Args('input') input: FindWriterInput) {
         const writers = await this.writerService.find(input);
+
         return writers;
     }
 
@@ -27,16 +32,17 @@ export class WriterResolver {
         @Parent() parent: Writer,
         @Args('input') input: FindWriterInput,
         @Info() info: any,
-        @Context('dataSources')
-        { bookDataSource }: { bookDataSource: BookDataSource },
+        // @Context('dataSources')
+        // { bookDataSource }: { bookDataSource: BookDataSource },
     ) {
-        const key: FindKey = {
-            id: Number(parent.id),
+        const key: LoadKey = {
+            parentId: Number(parent.id),
+            iteratee: 'writerId',
             where: input?.where,
             some: input?.some,
         };
-        const books = await bookDataSource.find(key);
-        return books;
+
+        return await this.bookService.load(key);
     }
 
     @Mutation('createWriter')

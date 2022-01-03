@@ -2,9 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { createWhere } from '@src/util/query-builder';
 import { Repository } from 'typeorm';
 import DataLoader from 'dataloader';
+import _ from 'lodash';
 
 export interface LoadKey {
     parentId: number;
+    iteratee: string;
     where?: any;
     some?: any;
 }
@@ -15,26 +17,45 @@ export interface JoinTarget {
 }
 
 @Injectable()
-export class BaseService<E> {
-    private readonly loader: DataLoader<LoadKey, E[]>;
+export abstract class BaseService<E> {
+    protected readonly loader: DataLoader<LoadKey, E[]>;
 
     constructor(protected readonly repository: Repository<E>) {
         this.loader = new DataLoader<LoadKey, E[]>(async (keys: LoadKey[]) => {
-            // const allItems = await this.load();
+            const allItems = await this.batch(keys);
 
-            const result = [];
-            // for (const key of keys) {
-            //     const items = allItems.filter(
-            //         (item) => item.writerId === key.id,
-            //     );
-            //     result.push(items);
-            // }
+            const items = _.groupBy(allItems, keys[0].iteratee);
+            const result = keys.map((key) => items[key.parentId]);
 
             return result;
         });
     }
 
-    // load(): Promise<E[]>
+    async batch(keys: LoadKey[]): Promise<E[]> {
+        const some = keys[0].some ?? {};
+        const where = keys[0].where ?? {};
+
+        const aliases = Object.keys(some);
+        const joinOptions = aliases.map((alias) => ({
+            property: alias,
+            where: some[alias],
+        }));
+        const qb = this.innerJoinAndSelect(joinOptions);
+
+        const parentProperty = `${keys[0].iteratee}__in`;
+        const parentIds = keys.map((key) => key.parentId);
+        const wheres = createWhere(
+            { [parentProperty]: parentIds, ...where },
+            this.tableName,
+        );
+        return await qb.where(wheres.condition, wheres.param).getMany();
+    }
+
+    // abstract batch(keys: LoadKey[]): Promise<E[]>;
+
+    async load(key: LoadKey) {
+        return await this.loader.load(key);
+    }
 
     get tableName(): string {
         return this.repository.metadata.name;

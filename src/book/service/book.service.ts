@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Book } from '@src/database/entity/book.entity';
-import { BaseService } from '@src/database/service/base.service';
+import { BaseService, LoadKey } from '@src/database/service/base.service';
 import { createWhere } from '@src/util/query-builder';
 import { Repository } from 'typeorm';
 import { FindKey } from './book.datasource';
@@ -17,10 +17,6 @@ export class BookService extends BaseService<Book> {
         private readonly bookRepository: Repository<Book>,
     ) {
         super(bookRepository);
-    }
-
-    get tableName(): string {
-        return this.bookRepository.metadata.name;
     }
 
     async save(dto: CreateBookDto) {

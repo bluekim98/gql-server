@@ -69,8 +69,8 @@ export class WriterService {
     }
 
     async find(input: FindWriterInput) {
-        const where = createWhere(input.where, this.tableName);
-        const alias = Object.keys(input.some);
+        const where = createWhere(input?.where ?? {}, this.tableName);
+        const alias = Object.keys(input?.some ?? {});
 
         const joinOptions = alias.map((alias) => ({
             property: alias,
